@@ -1,0 +1,62 @@
+sources:
+  life_card:
+    display_name: "LIFEカード"
+    raw_glob: "data/raw/life_*.csv"
+    encoding: "utf-8-sig"
+    columns:
+      date: "利用日"
+      date_format: "%Y/%m/%d"
+      vendor: "利用先"
+      amount: "当月支払金額"     # 分割払いはその月の引き落とし額のみ計上
+      amount_sign: negative       # 支出としてマイナス化
+    payment_method: "LIFEカード"
+
+  jcb_debit:
+    display_name: "JCBデビット"
+    raw_glob: "data/raw/debit_*.csv"
+    encoding: "utf-8-sig"
+    columns:
+      date: "日付"
+      date_format: "%Y/%m/%d"
+      vendor: "取引先"
+      amount: "金額"
+      amount_sign: negative
+    payment_method: "JCBデビット"
+
+  mizuho:
+    display_name: "みずほ口座"
+    raw_glob: "data/raw/mizuho_*.csv"
+    encoding: "utf-8-sig"
+    columns:
+      date: "日付"
+      date_format: "%Y.%m.%d"
+      vendor: "お取引内容"
+      amount_out: "お引出金額"   # 支出 → マイナス化
+      amount_in: "お預入金額"    # 入金 → プラスのまま
+    payment_method: "みずほ口座"
+
+thresholds:
+  similarity:
+    auto_apply: 0.90         # これ以上の類似度なら自動適用
+    top_k: 5                 # 対話時に表示する候補数
+
+  # 科目ごとの金額しきい値。超えた場合は類似度に関わらず必ず人に確認する
+  amount_confirm:
+    食費: 1000
+    消耗品: 5000
+
+  # 金額による科目・細目の読み替え(例: 少額の"昼食"は"飲料"とみなす 等)
+  # min/max は絶対値(支出額)に対する条件。片方だけ指定してもよい。
+  amount_reclassify:
+    - if_saimoku: "飲料"
+      min_exclusive: 200
+      max_inclusive: 1000
+      to_saimoku: "昼食"
+    - if_saimoku: "昼食"
+      max_inclusive: 200
+      to_saimoku: "飲料"
+
+summary:
+  # 月次集計から除外する科目(カードの引落など、実質的な支出ではないもの)
+  exclude_categories:
+    - "カードの引落"

@@ -1,0 +1,13 @@
+{
+  "name": "kakeibo-rag",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt && python scripts/prefetch_model.py",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  },
+  "remoteEnv": {
+    "HF_HOME": "${containerWorkspaceFolder}/models/hf_cache"
+  }
+}

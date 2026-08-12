@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+# 埋め込みキャッシュ(rule_list.csv から再生成可能)
+cache/
+
+# AIモデル本体(モデル名から再ダウンロード可能)
+models/

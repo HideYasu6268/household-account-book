@@ -1,8 +1,14 @@
+# data/raw/ に置かれたCSVはファイル名を問わず、中身を見て
+# どの形式か自動判定する(3種類そろっていなくても、あるものだけ処理される)。
+raw_dir: "data/raw"
+encoding: "utf-8-sig"
+
 sources:
   life_card:
     display_name: "LIFEカード"
-    raw_glob: "data/raw/life_*.csv"
-    encoding: "utf-8-sig"
+    detect:
+      type: header_first_column   # 1列目のヘッダー名で判定
+      value: "明細No."
     columns:
       date: "利用日"
       date_format: "%Y/%m/%d"
@@ -13,20 +19,22 @@ sources:
 
   jcb_debit:
     display_name: "JCBデビット"
-    raw_glob: "data/raw/debit_*.csv"
-    encoding: "utf-8-sig"
+    detect:
+      type: first_data_value      # 1列目・1行目のデータ値で判定(ヘッダー名が紛らわしいため)
+      value: "1295"
     columns:
-      date: "日付"
+      date: "お振替日"
       date_format: "%Y/%m/%d"
-      vendor: "取引先"
-      amount: "金額"
+      vendor: "ご利用先など"
+      amount: "お振替金額"
       amount_sign: negative
     payment_method: "JCBデビット"
 
   mizuho:
     display_name: "みずほ口座"
-    raw_glob: "data/raw/mizuho_*.csv"
-    encoding: "utf-8-sig"
+    detect:
+      type: header_first_column
+      value: "明細通番"
     columns:
       date: "日付"
       date_format: "%Y.%m.%d"
@@ -57,6 +65,6 @@ thresholds:
       to_saimoku: "飲料"
 
 summary:
-  # 月次集計から除外する科目(カードの引落など、実質的な支出ではないもの)
+  # 月次集計から除外する科目(カード引落・立替精算など、実質的な支出ではないもの)
   exclude_categories:
-    - "カードの引落"
+    - "立替・資金移動"

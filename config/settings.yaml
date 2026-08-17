@@ -1,0 +1,71 @@
+# data/raw/ に置かれたCSVはファイル名を問わず、中身を見て
+# どの形式か自動判定する(3種類そろっていなくても、あるものだけ処理される)。
+raw_dir: "data/raw"
+encoding: "utf-8-sig"
+
+sources:
+  life_card:
+    display_name: "LIFEカード"
+    detect:
+      type: header_first_column   # 1列目のヘッダー名で判定
+      value: "明細No."
+    columns:
+      date: "利用日"
+      date_format: "%Y/%m/%d"
+      vendor: "利用先"
+      amount: "当月支払金額"     # 分割払いはその月の引き落とし額のみ計上
+      amount_sign: negative       # 支出としてマイナス化
+    payment_method: "LIFEカード"
+
+  jcb_debit:
+    display_name: "JCBデビット"
+    detect:
+      type: first_data_value      # 1列目・1行目のデータ値で判定(ヘッダー名が紛らわしいため)
+      value: "1295"
+    columns:
+      date: "お振替日"
+      date_format: "%Y/%m/%d"
+      vendor: "ご利用先など"
+      amount: "お振替金額（￥）"
+      amount_sign: negative
+    payment_method: "JCBデビット"
+
+  mizuho:
+    display_name: "みずほ口座"
+    detect:
+      type: header_first_column
+      value: "明細通番"
+    columns:
+      date: "日付"
+      date_format: "%Y.%m.%d"
+      vendor: "お取引内容"
+      amount_out: "お引出金額"   # 支出 → マイナス化
+      amount_in: "お預入金額"    # 入金 → プラスのまま
+    payment_method: "みずほ口座"
+
+thresholds:
+  similarity:
+    auto_apply: 0.90         # これ以上の類似度なら自動適用
+    show_candidates: 0.70    # これ未満は候補にも出さない(無関係な候補を表示しない)
+    top_k: 5                 # 対話時に表示する候補数(show_candidates以上のもののみ)
+
+  # 科目ごとの金額しきい値。超えた場合は類似度に関わらず必ず人に確認する
+  amount_confirm:
+    食費: 1000
+    消耗品: 5000
+
+  # 金額による科目・細目の読み替え(例: 少額の"昼食"は"飲料"とみなす 等)
+  # min/max は絶対値(支出額)に対する条件。片方だけ指定してもよい。
+  amount_reclassify:
+    - if_saimoku: "飲料"
+      min_exclusive: 200
+      max_inclusive: 1000
+      to_saimoku: "昼食"
+    - if_saimoku: "昼食"
+      max_inclusive: 200
+      to_saimoku: "飲料"
+
+summary:
+  # 月次集計から除外する科目(カード引落・立替精算など、実質的な支出ではないもの)
+  exclude_categories:
+    - "立替・資金移動"

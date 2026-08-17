@@ -45,8 +45,8 @@ sources:
 
 thresholds:
   similarity:
-    auto_apply: 0.90         # これ以上の類似度なら自動適用
-    show_candidates: 0.70    # これ未満は候補にも出さない(無関係な候補を表示しない)
+    auto_apply: 0.95         # これ以上の類似度なら自動適用(厳しめ)
+    show_candidates: 0.80    # これ未満は候補にも出さない
     top_k: 5                 # 対話時に表示する候補数(show_candidates以上のもののみ)
 
   # 科目ごとの金額しきい値。超えた場合は類似度に関わらず必ず人に確認する

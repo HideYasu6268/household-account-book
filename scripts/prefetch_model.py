@@ -3,7 +3,7 @@
 """
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "intfloat/multilingual-e5-small"
+MODEL_NAME = "cl-nagoya/ruri-v3-130m"
 
 if __name__ == "__main__":
     print(f"モデルをダウンロードしています: {MODEL_NAME}")

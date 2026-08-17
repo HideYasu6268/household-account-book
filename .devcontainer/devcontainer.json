@@ -6,7 +6,7 @@
       "version": "latest"
     }
   },
-  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt && python scripts/prefetch_model.py && touch /tmp/kakeibo_setup_done",
+  "postCreateCommand": "( pip install --no-cache-dir -r requirements.txt && python scripts/prefetch_model.py ) > /tmp/kakeibo_setup.log 2>&1 && touch /tmp/kakeibo_setup_done",
   "customizations": {
     "vscode": {
       "extensions": ["ms-python.python"]

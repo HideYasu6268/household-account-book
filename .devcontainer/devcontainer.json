@@ -1,6 +1,11 @@
 {
   "name": "kakeibo-rag",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+  },
   "postCreateCommand": "pip install --no-cache-dir -r requirements.txt && python scripts/prefetch_model.py && touch /tmp/kakeibo_setup_done",
   "customizations": {
     "vscode": {

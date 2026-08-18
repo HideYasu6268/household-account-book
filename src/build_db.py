@@ -123,6 +123,11 @@ def _iter_raw_rows(settings: dict):
 
         source_cfg = sources[source_key]
         for row in rows:
+            # ヘッダーのような行（すべての値がキー名と同じ）をフィルタリング
+            is_header_row = all(str(row.get(k, "")).strip() == k.strip() for k in header)
+            if is_header_row:
+                print(f"[情報] ヘッダー重複行をスキップ: {path}")
+                continue
             yield source_key, source_cfg, path, row
 
 
@@ -142,7 +147,15 @@ def _to_unified_row(source_key: str, source_cfg: dict, path: Path, raw_row: dict
             )
         return raw_row[col_name]
 
-    date = _normalize_date(_get("date"), cols["date_format"])
+    try:
+        date = _normalize_date(_get("date"), cols["date_format"])
+    except ValueError as e:
+        print(f"[エラー] 日付解析エラー: {e}")
+        print(f"  ファイル: {path}")
+        print(f"  ソース: {source_key}")
+        print(f"  raw_row キー: {list(raw_row.keys())}")
+        print(f"  raw_row 内容: {raw_row}")
+        raise
     vendor = str(_get("vendor")).strip()
 
     if "amount" in cols:
@@ -195,15 +208,22 @@ def import_and_classify() -> None:
     all_rows = _load_existing_rows()
 
     added_count = 0
+    skipped_count = 0
     try:
         for source_key, source_cfg, path, raw_row in _iter_raw_rows(settings):
-            unified = _to_unified_row(source_key, source_cfg, path, raw_row)
+            try:
+                unified = _to_unified_row(source_key, source_cfg, path, raw_row)
+            except (UnifiedRowError, ValueError) as e:
+                print(f"[警告] 行をスキップ: {e}")
+                skipped_count += 1
+                continue
+            
             key = (unified["支払手段"], unified["日付"], unified["取引先"], str(unified["金額"]))
             if key in existing_keys:
                 continue
 
             category, subcategory = classify_mod.classify_transaction(
-                unified["支払手段"], unified["取引先"], unified["金額"], settings, category_master
+                unified["支払手段"], unified["取引先"], unified["金額"], settings, category_master, unified["日付"]
             )
             unified["科目"] = category
             unified["細目"] = subcategory
@@ -223,6 +243,8 @@ def import_and_classify() -> None:
         print("新規の取引はありませんでした。")
     else:
         print(f"{added_count} 件を追加しました。(合計 {len(all_rows)} 件)")
+    if skipped_count > 0:
+        print(f"({skipped_count} 件は形式エラーでスキップされました)")
 
 
 if __name__ == "__main__":

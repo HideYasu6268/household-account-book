@@ -78,6 +78,7 @@ def _resolve_interactively(
     amount: float,
     candidates: List[Dict],
     category_master: Dict[str, List[str]],
+    transaction_date: str = "",
 ) -> Tuple[str, str]:
     """questionaryでの対話確認。各ステップに「戻る」を用意し、
     間違って選んでも1つ前のステップに戻れるようにしている。
@@ -89,7 +90,15 @@ def _resolve_interactively(
 
     while True:
         _clear_screen()
-        print(f"[{payment_method}] {vendor_text}  金額: {amount:,.0f}円\n")
+        # 日付を mm/dd 形式で表示（YYYY-MM-DD → mm/dd）
+        date_str = ""
+        if transaction_date:
+            try:
+                date_obj = __import__('datetime').datetime.strptime(transaction_date, "%Y-%m-%d")
+                date_str = f" {date_obj.strftime('%m/%d')}"
+            except (ValueError, AttributeError):
+                pass
+        print(f"[{payment_method}]{date_str} {vendor_text}  金額: {amount:,.0f}円\n")
 
         if state == "candidate":
             choices = []
@@ -176,23 +185,25 @@ def classify_transaction(
     amount: float,
     settings: dict,
     category_master: Dict[str, List[str]],
+    transaction_date: str = "",
 ) -> Tuple[str, str]:
     sim_settings = settings["thresholds"]["similarity"]
     amount_confirm = settings.get("thresholds", {}).get("amount_confirm", {})
+    default_amount_limit = 5000  # 全科目共通のデフォルト上限金額
 
     # 1. まず完全一致を確認する(e5を使わない最速パス)。
     #    rule_listにデータが溜まるほど、この完全一致で済むケースが増えていく想定。
     exact = _find_exact_match(payment_method, vendor_text)
     if exact is not None:
-        limit = amount_confirm.get(exact["科目"])
-        forced = limit is not None and abs(amount) > limit
+        limit = amount_confirm.get(exact["科目"], default_amount_limit)
+        forced = abs(amount) > limit
         if not forced:
             category, subcategory = exact["科目"], exact["細目"]
             return apply_amount_reclassify(category, subcategory, amount, settings)
 
         # 高額なので、完全一致であっても念のため確認だけ求める(類似度検索はしない)
         category, subcategory = _resolve_interactively(
-            payment_method, vendor_text, amount, [{"rule": exact, "similarity": 1.0}], category_master
+            payment_method, vendor_text, amount, [{"rule": exact, "similarity": 1.0}], category_master, transaction_date
         )
         return apply_amount_reclassify(category, subcategory, amount, settings)
 
@@ -206,15 +217,15 @@ def classify_transaction(
 
     auto_ok = top is not None and top["similarity"] >= threshold_auto
     if auto_ok:
-        limit = amount_confirm.get(top["rule"]["科目"])
-        if limit is not None and abs(amount) > limit:
+        limit = amount_confirm.get(top["rule"]["科目"], default_amount_limit)
+        if abs(amount) > limit:
             auto_ok = False  # 高額なので閾値に関わらず強制確認
 
     if auto_ok:
         category, subcategory = top["rule"]["科目"], top["rule"]["細目"]
     else:
         category, subcategory = _resolve_interactively(
-            payment_method, vendor_text, amount, candidates, category_master
+            payment_method, vendor_text, amount, candidates, category_master, transaction_date
         )
 
     return apply_amount_reclassify(category, subcategory, amount, settings)

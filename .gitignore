@@ -6,3 +6,7 @@ cache/
 
 # AIモデル本体(モデル名から再ダウンロード可能)
 models/
+
+# Google Drive OAuth関連(機密情報。絶対にコミットしない)
+data/client_secret.json
+data/token.json

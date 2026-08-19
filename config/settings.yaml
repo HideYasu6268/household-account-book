@@ -65,6 +65,14 @@ thresholds:
       max_inclusive: 200
       to_saimoku: "飲料"
 
+drive:
+  # 分類処理後、data/processed/kakeibo_db.csv をアップロードするGoogle Driveフォルダ
+  # (フォルダURL https://drive.google.com/drive/folders/<ここがfolder_id> の部分)
+  folder_id: "1v0nog6wj-GoTzgWsvojFtmR_hRSets-Q"
+  # OAuth関連ファイルの配置場所(共に.gitignoreで除外済み。コミットしないこと)
+  client_secret_path: "data/client_secret.json"
+  token_path: "data/token.json"
+
 summary:
   # 月次集計から除外する科目(カード引落・立替精算など、実質的な支出ではないもの)
   exclude_categories:

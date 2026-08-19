@@ -161,7 +161,11 @@ def _to_unified_row(source_key: str, source_cfg: dict, path: Path, raw_row: dict
     if "amount" in cols:
         amount = _parse_amount(_get("amount"))
         if cols.get("amount_sign") == "negative":
-            amount = -abs(amount)
+            # 通常の利用(生データはプラス表記)は支出としてマイナス化。
+            # 返品・キャンセル等で生データがマイナス表記の場合は、符号を反転させる
+            # ことで支出の取り消し(プラス)として扱う。abs()で強制マイナス化すると
+            # このケースを支出として二重計上してしまうため、単純反転にしている。
+            amount = -amount
     else:
         out = _parse_amount(raw_row.get(cols["amount_out"], ""))
         inn = _parse_amount(raw_row.get(cols["amount_in"], ""))

@@ -14,7 +14,7 @@ sources:
       date_format: "%Y/%m/%d"
       vendor: "利用先"
       amount: "当月支払金額"     # 分割払いはその月の引き落とし額のみ計上
-      amount_sign: negative       # 支出としてマイナス化
+      amount_sign: negative       # 通常は支出としてマイナス化(返品等でマイナス表記の行は符号反転でプラスになる)
     payment_method: "LIFEカード"
 
   jcb_debit:

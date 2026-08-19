@@ -69,6 +69,9 @@ drive:
   # 分類処理後、data/processed/kakeibo_db.csv をアップロードするGoogle Driveフォルダ
   # (フォルダURL https://drive.google.com/drive/folders/<ここがfolder_id> の部分)
   folder_id: "1v0nog6wj-GoTzgWsvojFtmR_hRSets-Q"
+  # kakeibo_db.csv はここで指定した直近の月数分だけ絞り込んでアップロードする
+  # (monthly_by_subcategory.csv は絞り込まず全期間アップロードされる)
+  recent_months: 3
   # OAuth関連ファイルの配置場所(共に.gitignoreで除外済み。コミットしないこと)
   client_secret_path: "data/client_secret.json"
   token_path: "data/token.json"

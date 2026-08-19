@@ -10,3 +10,6 @@ models/
 # Google Drive OAuth関連(機密情報。絶対にコミットしない)
 data/client_secret.json
 data/token.json
+
+# Driveアップロード用に直近月だけ絞り込んだ一時ファイル(再生成可能)
+data/processed/.kakeibo_db_recent.csv

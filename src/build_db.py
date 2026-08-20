@@ -223,7 +223,9 @@ def import_and_classify() -> None:
                 continue
             
             key = (unified["支払手段"], unified["日付"], unified["取引先"], str(unified["金額"]))
-            if key in existing_keys:
+            # 現金は同日同額の別取引(例: 電車の往復)がよくあり、内容だけでは
+            # 区別できないため、重複チェックの対象外にする(常に新規取込)。
+            if unified["支払手段"] != "現金" and key in existing_keys:
                 continue
 
             category, subcategory = classify_mod.classify_transaction(

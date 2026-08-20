@@ -30,6 +30,19 @@ sources:
       amount_sign: negative
     payment_method: "JCBデビット"
 
+  zaim_cash:
+    display_name: "Zaim(現金)"
+    detect:
+      type: header_first_column   # 1列目のヘッダー名で判定
+      value: "日付"
+    columns:
+      date: "日付"
+      date_format: "%Y-%m-%d"
+      vendor: "お店"
+      amount_out: "支出"          # 支出 → マイナス化
+      amount_in: "収入"           # 収入 → プラスのまま
+    payment_method: "現金"        # 支払元はSuicaだが、チャージ元の現金として計上する
+
   mizuho:
     display_name: "みずほ口座"
     detect:
